@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "Running for commit: $GITHUB_SHA"
+COMMIT_PARENTS=$(git show --no-patch --format=%P $GITHUB_SHA)
+echo "COMMIT_PARENTS: $COMMIT_PARENTS"
 IS_MERGE=$(git show --no-patch --format=%P $GITHUB_SHA | grep -c " ")
 echo "IS_MERGE: $IS_MERGE"
 if [ $IS_MERGE -eq 0 ]; then echo "Not a merge commit, abort step"; exit 0; fi
