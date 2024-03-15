@@ -15,11 +15,8 @@ jobs:
 
       - name: Increment version patch
         run: |
-          git show --no-patch --format=%P $GITHUB_SHA | grep -q " "
-          if [ $? -ne 0 ]; then
-            echo "Not a merge commit, abort step"
-            exit 0;
-          fi
+          IS_MERGE=$(git show --no-patch --format=%P $GITHUB_SHA | grep -c " ")
+          if [ $IS_MERGE -eq 0 ]; then echo "Not a merge commit, abort step" exit 0; fi
           NEW_VERSION=`npm version patch --no-git-tag-version`
           echo "Updating package.json with $NEW_VERSION"
           sed -i "s/\"version\": .*/\"version\": \"$NEW_VERSION\",/" package.json
