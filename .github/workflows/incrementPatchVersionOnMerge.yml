@@ -21,16 +21,13 @@ jobs:
         if: steps.check_merge_commit.outputs.return-value == '0'
         id: increment_version
         run: |
-          npm version patch --no-git-tag-version
-
-      - name: Get new version
-        if: steps.check_merge_commit.outputs.return-value == '0'
-        run: echo "New version: ${{steps.increment_version.outputs.new_version}}"
+          echo NEW_VERSION=`npm version patch --no-git-tag-version` >> "$GITHUB_OUTPUT"
 
       - name: Update package.json
+        env:
+          NEW_VERSION: ${{ steps.increment_version.outputs.NEW_VERSION }}
         if: steps.check_merge_commit.outputs.return-value == '0'
         run: |
-          NEW_VERSION=${{ steps.increment_version.outputs.new_version }}
           sed -i "s/\"version\": .*/\"version\": \"$NEW_VERSION\",/" package.json
 
       - name: Commit changes
