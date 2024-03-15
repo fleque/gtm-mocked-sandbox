@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Running for commit: $GITHUB_SHA"
-COMMIT_PARENTS=$(git show $GITHUB_SHA)
+COMMIT_PARENTS=$(git show --parents --format=%P $GITHUB_SHA)
 echo "COMMIT_PARENTS: $COMMIT_PARENTS"
 IS_MERGE=$(git show --no-patch --format=%P $GITHUB_SHA | grep -c " ")
 echo "IS_MERGE: $IS_MERGE"
