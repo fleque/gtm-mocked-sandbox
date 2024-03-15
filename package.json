@@ -1,0 +1,19 @@
+{
+  "name": "gtm-mocked-sandbox",
+  "version": "0.1.0",
+  "description": "A mocked environment to run GTM template scripts in. Used for testing the scripts independently from gtm environment.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jasmine --config=jasmine.json"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "jasmine": "^5.1.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "proxyquire": "^2.1.3",
+    "tldts": "^6.1.13"
+  }
+}
