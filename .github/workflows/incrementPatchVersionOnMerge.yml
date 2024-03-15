@@ -15,7 +15,11 @@ jobs:
 
       - name: Increment version patch
         run: |
-          git show --no-patch --format=%P $GITHUB_SHA | grep -q " " && true
+          git show --no-patch --format=%P $GITHUB_SHA | grep -q " "
+          if [ $? -ne 0 ]; then
+            echo "Not a merge commit, abort step"
+            exit 0;
+          fi
           NEW_VERSION=`npm version patch --no-git-tag-version`
           echo "Updating package.json with $NEW_VERSION"
           sed -i "s/\"version\": .*/\"version\": \"$NEW_VERSION\",/" package.json
@@ -23,4 +27,5 @@ jobs:
           git config --local user.name "$GITHUB_ACTOR"
           git add package.json
           git commit -m "Incremented patch version to $NEW_VERSION"
+          echo "Pushing..."
           git push
