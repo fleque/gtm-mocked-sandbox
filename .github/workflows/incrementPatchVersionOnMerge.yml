@@ -13,26 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check if it's a merge commit
-        id: check_merge_commit
-        run: git show --no-patch --format=%P $GITHUB_SHA | grep -q " "
-
-      - name: Increment patch version
-        if: steps.check_merge_commit.outputs.return-value == '0'
-        id: increment_version
+      - name: Increment version patch
         run: |
-          echo NEW_VERSION=`npm version patch --no-git-tag-version` >> "$GITHUB_OUTPUT"
-
-      - name: Update package.json
-        env:
-          NEW_VERSION: ${{ steps.increment_version.outputs.NEW_VERSION }}
-        if: steps.check_merge_commit.outputs.return-value == '0'
-        run: |
+          git show --no-patch --format=%P $GITHUB_SHA | grep -q " " && true
+          NEW_VERSION=`npm version patch --no-git-tag-version`
+          echo "Updating package.json with $NEW_VERSION"
           sed -i "s/\"version\": .*/\"version\": \"$NEW_VERSION\",/" package.json
-
-      - name: Commit changes
-        if: steps.check_merge_commit.outputs.return-value == '0'
-        run: |
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git config --local user.name "$GITHUB_ACTOR"
           git add package.json
