@@ -2,6 +2,9 @@ const proxyquire = require('proxyquire');
 const tldts = require('tldts');
 const axios = require('axios');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 
 class GtmSandboxMock {
@@ -305,18 +308,21 @@ class GtmSandboxMock {
      *
      * @param specFile
      */
-    requireTestModuleForSpecFile(specFile) {
+    requireTestModuleForSpecFile(specFile, wrapToGetResult=true) {
         const { path, filename } = this._getSpecFileInfo(specFile);
-        return this.requireTestModule(`${path}/${filename}`)
+        return this.requireTestModule(`${path}/${filename}`, wrapToGetResult)
     }
 
     /**
      * Includes/requires the module at the given path while mocking its environment to point to this instance of GmgMockedmock.
-     * It is effectively running the module/script, too.
+     * It is effectively running the module/script. If the script is returning a value (like for example a variable script should)
+     * this value is returned in case wrapToGetResult is true.
      *
-     * Returns the required module.
+     * @param testModule The module (file name) to be required.
+     * @param wrapToGetResult Whether the script should be wrapped to access its result (i.e. return value, not export)
+     * @returns Either the loaded module (the test module that was required), or, if wrapToGetResult is true, the result of the script
      */
-    requireTestModule(testModule) {
+    requireTestModule(testModule, wrapToGetResult=true) {
         try {
             let mockedMethods = this._getMockedMethodMap();
             mockedMethods.JSON = this.JSON;
@@ -328,11 +334,30 @@ class GtmSandboxMock {
             };
 
             proxyquire.noCallThru();
-            return proxyquire.load(testModule, mockedMethods);
+            if (wrapToGetResult) {
+                testModule = this._wrapFileInTmpForResult(testModule);
+            }
+            let loadedModule = proxyquire.load(testModule, mockedMethods);
+            return wrapToGetResult ? loadedModule.scriptResult : loadedModule;
         } catch (error) {
             console.error(`Failed to require file: ${testModule}`, error);
             throw error; // Re-throw the error for Jasmine to handle
         }
+    }
+
+    _wrapFileInTmpForResult(fileToWrap) {
+        const fileName = path.basename(fileToWrap);
+        const tmpPath = path.join(os.tmpdir(), fileName);
+
+        const originalContents = fs.readFileSync(fileToWrap, 'utf8');
+        const wrappedContents = `
+function executeGtmScriptForResult() {
+    ${originalContents}
+}
+module.exports.scriptResult = executeGtmScriptForResult();
+`;
+        fs.writeFileSync(tmpPath, wrappedContents, 'utf8');
+        return tmpPath;
     }
 
     getIssuedPromises() {
