@@ -307,7 +307,7 @@ class GtmSandboxMock {
      */
     requireTestModuleForSpecFile(specFile) {
         const { path, filename } = this._getSpecFileInfo(specFile);
-        this.requireTestModule(`${path}/${filename}`)
+        return this.requireTestModule(`${path}/${filename}`)
     }
 
     /**
