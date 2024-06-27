@@ -1,6 +1,6 @@
 {
   "name": "gtm-mocked-sandbox",
-  "version": "v0.1.2",
+  "version": "v0.1.3",
   "description": "A mocked environment to run GTM template scripts in. Used for testing the scripts independently from gtm environment.",
   "main": "src/index.js",
   "scripts": {
