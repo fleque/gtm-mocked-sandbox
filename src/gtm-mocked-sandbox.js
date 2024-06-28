@@ -252,14 +252,21 @@ class GtmSandboxMock {
         this.eventData = mockedData;
     }
 
-
+    /**
+     * Set the field data that will be available to a script as 'data' variable.
+     */
     setTempalteFieldData(fieldData) {
         this.fieldData = Object.assign({}, fieldData);
         this.fieldData.gtmOnSuccess = function() {};
         this.fieldData.gtmOnFailure = function() {};
     }
 
-    // data needs to be mocked with mockTemplateFieldValues(fieldValues)
+    /**
+     * Add a property to the field data that will be available to a script as 'data' variable.
+     */
+    addTemplateFieldData(propertyName, propertyValue) {
+        this.fieldData[propertyName] = propertyValue;
+    }
 
     setScriptType(type) {
         this.type = type;
