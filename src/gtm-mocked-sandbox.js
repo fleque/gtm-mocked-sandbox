@@ -473,7 +473,7 @@ class Sandbox {
         this.sandboxMock.claimRequestCalled = true;
     }
 
-    getConainerVersion() {
+    getContainerVersion() {
         return this.sandboxMock.containerVersion;
     }
 
