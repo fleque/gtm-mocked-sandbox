@@ -18,6 +18,23 @@ class GtmSandboxMock {
         this.reqCookieValues = {};
         this.Math = Math;
         this.JSON = JSON;
+        this.Object = {
+            delete: function (objectInput, keyToDelete) {
+                delete objectInput[keyToDelete];
+            },
+            keys: function (objectInput) {
+                return Object.keys(objectInput);
+            },
+            values: function (objectInput) {
+                return Object.values(objectInput);
+            },
+            entries: function (objectInput) {
+                return Object.entries(objectInput)
+            },
+            freeze: function (objectInput) {
+                return Object.freeze(objectInput);
+            }
+        };
         this.respCookieValues = {};
         this.containerVersion = {
             containerId: 'GTM-AB12CDEF',
@@ -334,6 +351,7 @@ class GtmSandboxMock {
             let mockedMethods = this._getMockedMethodMap();
             mockedMethods.JSON = this.JSON;
             mockedMethods.Math = this.Math;
+            mockedMethods.Object = this.Object;
             global.data = this.fieldData;
             mockedMethods.Promise = {
                 all: this._promiseAll.bind(this),
