@@ -285,6 +285,13 @@ class GtmSandboxMock {
         this.fieldData[propertyName] = propertyValue;
     }
 
+    /**
+     * Returns the current set template field data.
+     */
+    getTemplateFieldData() {
+        return this.fieldData;
+    }
+
     setScriptType(type) {
         this.type = type;
     }
