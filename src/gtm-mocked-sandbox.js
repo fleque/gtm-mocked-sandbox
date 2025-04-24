@@ -10,9 +10,10 @@ const os = require('os');
 class GtmSandboxMock {
 
     constructor() {
+        let self = this;
         this.fieldData = {
-            gtmOnSuccess: function () {},
-            gtmOnFailure: function () {}
+            gtmOnSuccess: function () {self.apiCalled("gtmOnSuccess")},
+            gtmOnFailure: function () {self.apiCalled("gtmOnFailure")}
         };
         this.eventData = {};
         this.reqCookieValues = {};
@@ -243,7 +244,7 @@ class GtmSandboxMock {
         let self = this;
         return {
             wasCalled: function() {
-                if (!self.calledApis.contains(apiName)) {
+                if (!self.calledApis.has(apiName)) {
                     throw new Error(`${apiName} was not called.`);
                 }
             },
@@ -295,8 +296,9 @@ class GtmSandboxMock {
      */
     setTemplateFieldData(fieldData) {
         this.fieldData = Object.assign({}, fieldData);
-        this.fieldData.gtmOnSuccess = function() {};
-        this.fieldData.gtmOnFailure = function() {};
+        let self = this;
+        this.fieldData.gtmOnSuccess = function() {self.apiCalled("gtmOnSuccess")};
+        this.fieldData.gtmOnFailure = function() {self.apiCalled("gtmOnFailure")};
     }
 
     /**
