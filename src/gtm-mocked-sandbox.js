@@ -249,7 +249,7 @@ class GtmSandboxMock {
                 }
             },
             wasNotCalled: function() {
-                if (self.calledApis.contains(apiName)) {
+                if (self.calledApis.has(apiName)) {
                     throw new Error(`${apiName} was called, but should not have been.`);
                 }
             }
