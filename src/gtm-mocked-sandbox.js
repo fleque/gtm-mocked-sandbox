@@ -57,6 +57,7 @@ class GtmSandboxMock {
         this.issuedOutgoingRequests = [];
         this.mockedOutgoingRequests = [];
         this.type = 'Tag';
+        this.calledApis = new Set();
         this.sandbox = new Sandbox(this);
     }
 
@@ -234,6 +235,26 @@ class GtmSandboxMock {
         return null;
     }
 
+    apiCalled(apiName) {
+        this.calledApis.add(apiName);
+    }
+
+    assertApi(apiName) {
+        let self = this;
+        return {
+            wasCalled: function() {
+                if (!self.calledApis.contains(apiName)) {
+                    throw new Error(`${apiName} was not called.`);
+                }
+            },
+            wasNotCalled: function() {
+                if (self.calledApis.contains(apiName)) {
+                    throw new Error(`${apiName} was called, but should not have been.`);
+                }
+            }
+        }
+    }
+
     _deepEquals(obj1, obj2) {
         const keys1 = Object.keys(obj1);
         const keys2 = Object.keys(obj2);
@@ -272,10 +293,17 @@ class GtmSandboxMock {
     /**
      * Set the field data that will be available to a script as 'data' variable.
      */
-    setTempalteFieldData(fieldData) {
+    setTemplateFieldData(fieldData) {
         this.fieldData = Object.assign({}, fieldData);
         this.fieldData.gtmOnSuccess = function() {};
         this.fieldData.gtmOnFailure = function() {};
+    }
+
+    /**
+     * @Deprecated: This only exists because of a former typo.
+     */
+    setTempalteFieldData(fieldData) {
+        this.setTemplateFieldData(fieldData);
     }
 
     /**
@@ -420,14 +448,17 @@ class Sandbox {
     }
 
     getTimestampMillis() {
+        this.sandboxMock.apiCalled("getTimestampMillis");
         return Date.now();
     }
 
     getTimestamp() {
+        this.sandboxMock.apiCalled("getTimestamp");
         return this.getTimestampMillis();
     }
 
     createRegex(pattern, flags) {
+        this.sandboxMock.apiCalled("createRegex");
         try {
             return new RegExp(pattern, flags);
         } catch (error) {
@@ -436,23 +467,27 @@ class Sandbox {
     }
 
     testRegex(regEx, string) {
+        this.sandboxMock.apiCalled("testRegex");
         if (!string)
             return false;
         return regEx.test(string);
     }
 
     sha256Sync(input, options={}) {
+        this.sandboxMock.apiCalled("sha256Sync");
         let outputEncoding = options?.outputEncoding ? options?.outputEncoding : 'base64';
         return crypto.createHash('sha256').update(input).digest(outputEncoding);
     }
 
     sha256(input, onSuccess, options={}) {
+        this.sandboxMock.apiCalled("sha256");
         let digest = this.sha256Sync(input, options);
         if (onSuccess)
             onSuccess(digest);
     }
 
     parseUrl(urlStr) {
+        this.sandboxMock.apiCalled("parseUrl");
         try {
             let parsedUrl = new URL(urlStr);
             const paramsObject = {};
@@ -478,16 +513,19 @@ class Sandbox {
     }
 
     logToConsole(...data) {
+        this.sandboxMock.apiCalled("logToConsole");
         console.log('GtmSandboxMock: ---');
         console.log(...data);
         console.log('---');
     }
 
     callLater(handler) {
+        this.sandboxMock.apiCalled("callLater");
         setTimeout(handler, 0);
     }
 
     claimRequest() {
+        this.sandboxMock.apiCalled("claimRequest");
         try {
             throw new Error();
         } catch (error) {
@@ -499,14 +537,17 @@ class Sandbox {
     }
 
     getContainerVersion() {
+        this.sandboxMock.apiCalled("getContainerVersion");
         return this.sandboxMock.containerVersion;
     }
 
     returnResponse() {
+        this.sandboxMock.apiCalled("returnResponse");
         this.sandboxMock.returnedResponse = JSON.parse(JSON.stringify(this.sandboxMock.response));
     }
 
     setResponseHeader(name, value) {
+        this.sandboxMock.apiCalled("setResponseHeader");
         if (!value && this.sandboxMock.response.headers.hasOwnProperty(name)) {
             delete this.sandboxMock.response.headers[name];
         }
@@ -516,54 +557,64 @@ class Sandbox {
     }
 
     setResponseStatus(statusCode) {
+        this.sandboxMock.apiCalled("setResponseStatus");
         this.sandboxMock.response.statusCode = statusCode;
     }
 
     setResponseBody(body) {
+        this.sandboxMock.apiCalled("setResponseBody");
         this.sandboxMock.response.body = body;
     }
 
     setPixelResponse() {
-
+        this.sandboxMock.apiCalled("setPixelResponse");
     }
 
     getRemoteAddress() {
+        this.sandboxMock.apiCalled("getRemoteAddress");
         return this.sandboxMock.request?.remoteAddress;
     }
 
     getRequestBody() {
+        this.sandboxMock.apiCalled("getRequestBody");
         return this.sandboxMock.request?.body;
     }
 
     getRequestMethod() {
+        this.sandboxMock.apiCalled("getRequestMethod");
         return this.sandboxMock.request?.method;
     }
 
     getRequestPath() {
+        this.sandboxMock.apiCalled("getRequestPath");
         return this.sandboxMock.request?.path;
     }
 
     getRequestQueryString() {
+        this.sandboxMock.apiCalled("getRequestQueryString");
         return this.sandboxMock.request?.queryString;
     }
 
     getRequestQueryParameters() {
+        this.sandboxMock.apiCalled("getRequestQueryParameters");
         return this.sandboxMock.request?.queryParameters;
     }
 
     getRequestQueryParameter(name) {
+        this.sandboxMock.apiCalled("getRequestQueryParameter");
         return this.sandboxMock.request?.queryParameters?.[name];
     }
 
     runContainer() {
-
+        this.sandboxMock.apiCalled("runContainer");
     }
 
     fromBase64() {
-
+        this.sandboxMock.apiCalled("fromBase64");
     }
 
     sendHttpGet(url, options={}) {
+        this.sandboxMock.apiCalled("sendHttpGet");
         if (!options) {
             options = {}
         }
@@ -575,6 +626,7 @@ class Sandbox {
      * Creates the specfied http request and returns a promise that will resolve with the response.
      */
     sendHttpRequest(url, options = {}, body = '') {
+        this.sandboxMock.apiCalled("sendHttpRequest");
         let reqObj = {url, options, body, mocked: false};
         this.sandboxMock.issuedOutgoingRequests.push(reqObj);
         let mockedReq = this.sandboxMock._findMockedRequest(url, options, body);
@@ -606,26 +658,31 @@ class Sandbox {
     }
 
     sendPixelFromBrowser() {
-
+        this.sandboxMock.apiCalled("sendPixelFromBrowser");
     }
 
     getType() {
+        this.sandboxMock.apiCalled("getType");
         return this.sandboxMock.type;
     }
 
     generateRandom() {
+        this.sandboxMock.apiCalled("generateRandom");
     }
 
     computeEffectiveTldPlusOne(domainOrUrl) {
+        this.sandboxMock.apiCalled("computeEffectiveTldPlusOne");
         const parsedUrl = tldts.parse(domainOrUrl);
         return parsedUrl.domain;
     }
 
     getRequestHeader(name) {
+        this.sandboxMock.apiCalled("getRequestHeader");
         return this.sandboxMock.request?.headers?.[name.toLowerCase()];
     }
 
     getCookieValues(name, decode = true) {
+        this.sandboxMock.apiCalled("getCookieValues");
         if (this.sandboxMock.request?.cookies?.hasOwnProperty(name)) {
             const value = this.sandboxMock.request.cookies[name];
             if (Array.isArray(value)) {
@@ -638,38 +695,47 @@ class Sandbox {
     }
 
     setCookie(name, value, options={}, noEncode=false) {
+        this.sandboxMock.apiCalled("setCookie");
         this.sandboxMock.response.cookies[name] = {value: value, options, noEncode}
     }
 
     decodeUri(uri) {
+        this.sandboxMock.apiCalled("decodeUri");
         return decodeURI(uri);
     }
 
     encodeUri(uri) {
+        this.sandboxMock.apiCalled("encodeUri");
         return encodeURI(uri);
     }
 
     encodeUriComponent(uriComponent) {
+        this.sandboxMock.apiCalled("encodeUriComponent");
         return encodeURIComponent(uriComponent);
     }
 
     decodeUriComponent(uriComponent) {
+        this.sandboxMock.apiCalled("decodeUriComponent");
         return decodeURIComponent(uriComponent);
     }
 
     makeString(value) {
+        this.sandboxMock.apiCalled("makeString");
         return String(value)
     }
 
     makeNumber(value) {
+        this.sandboxMock.apiCalled("makeNumber");
         return Number(value);
     }
 
     makeInteger(value) {
+        this.sandboxMock.apiCalled("makeInteger");
         return parseInt(value);
     }
 
     makeTableMap(tableObj, keyColumnName='key', valueColumnName='value') {
+        this.sandboxMock.apiCalled("makeTableMap");
         // Check if tableObj is an array
         if (!Array.isArray(tableObj)) {
             return null;
@@ -692,10 +758,12 @@ class Sandbox {
     }
 
     getAllEventData() {
+        this.sandboxMock.apiCalled("getAllEventData");
         return this.sandboxMock.eventData;
     }
 
     getEventData(keyPath) {
+        this.sandboxMock.apiCalled("getEventData");
         return this.sandboxMock.eventData[keyPath];
     }
 }
